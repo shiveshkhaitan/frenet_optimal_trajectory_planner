@@ -53,8 +53,10 @@ FrenetOptimalTrajectory::~FrenetOptimalTrajectory() {
         delete fp;
     }
 
-    for (Obstacle* ob : obstacles) {
-        delete ob;
+    for (std::vector<Obstacle* > obs : obstacles) {
+        for (Obstacle* ob : obs) {
+            delete ob;
+        }
     }
 }
 
@@ -104,8 +106,9 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
             }
 
             // velocity keeping
-            tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample;
-            while (tv <= fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample) {
+            tv = fot_ic->target_speed;// - fot_hp->d_t_s * fot_hp->n_s_sample;
+            while (tv >= fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample) {
+                // printf("Tv%f\n", tv);
                 longitudinal_acceleration = 0;
                 longitudinal_jerk = 0;
 
@@ -137,18 +140,18 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 if (!success) {
                     // deallocate memory and continue
                     delete tfp;
-                    tv += fot_hp->d_t_s;
+                    tv -= fot_hp->d_t_s;
                     continue;
                 }
-
                 //auto start = chrono::high_resolution_clock::now();
                 bool valid_path = tfp->is_valid_path(obstacles);
+                fp_list.push_back(*tfp);
                 //auto end = chrono::high_resolution_clock::now();
                 //valid_path_time += chrono::duration_cast<chrono::nanoseconds>(end - start).count();
                 if (!valid_path) {
                     // deallocate memory and continue
                     delete tfp;
-                    tv += fot_hp->d_t_s;
+                    tv -= fot_hp->d_t_s;
                     continue;
                 }
 
@@ -167,6 +170,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 tfp->c_longitudinal_jerk = longitudinal_jerk;
                 tfp->c_end_speed_deviation =
                     abs(fot_ic->target_speed - tfp->s_d.back());
+                // printf("s-d %f\n", tfp->s_d.back());
                 tfp->c_time_taken = ti;
                 tfp->c_longitudinal = fot_hp->ka * tfp->c_longitudinal_acceleration +
                                       fot_hp->kj * tfp->c_longitudinal_jerk +
@@ -183,7 +187,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                           fot_hp->ko * tfp->c_inv_dist_to_obstacles;
 
                 frenet_paths.push_back(tfp);
-                tv += fot_hp->d_t_s;
+                tv -= fot_hp->d_t_s;
             }
             ti += fot_hp->dt;
             // make sure to deallocate
@@ -197,21 +201,26 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
 
 void FrenetOptimalTrajectory::setObstacles() {
     // Construct obstacles
+    int N = 41;
     vector<double> llx(fot_ic->o_llx, fot_ic->o_llx + fot_ic->no);
     vector<double> lly(fot_ic->o_lly, fot_ic->o_lly + fot_ic->no);
     vector<double> urx(fot_ic->o_urx, fot_ic->o_urx + fot_ic->no);
     vector<double> ury(fot_ic->o_ury, fot_ic->o_ury + fot_ic->no);
-
-    for (int i = 0; i < fot_ic->no; i++) {
-        addObstacle(
-            Vector2f(llx[i], lly[i]),
-            Vector2f(urx[i], ury[i])
-        );
+    obstacles = std::vector<std::vector<Obstacle *> >(N);
+    for (int j = 0; j < N; ++j) {
+        for (int i = 0; i < fot_ic->no / N; i++) {
+            Vector2f first_point(llx[i * N + j], lly[i * N + j]);
+            Vector2f second_point(urx[i * N + j], ury[i * N + j]);
+            // printf("%f %f %f %f\n", first_point.x(), second_point.x(), first_point.y(), second_point.y());
+            obstacles[j].push_back(new Obstacle(std::move(first_point),
+                                 std::move(second_point),
+                                 fot_hp->obstacle_clearance));
+        }
     }
 }
 
 void FrenetOptimalTrajectory::addObstacle(Vector2f first_point, Vector2f second_point) {
-    obstacles.push_back(new Obstacle(std::move(first_point),
-                                     std::move(second_point),
-                                     fot_hp->obstacle_clearance));
+    // obstacles.push_back(new Obstacle(std::move(first_point),
+    //                                  std::move(second_point),
+    //                                  fot_hp->obstacle_clearance));
 }

@@ -2,8 +2,9 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <iostream>
 
-const float COLLISION_CHECK_THRESHOLD = 6; // don't check unless within 6m
+const float COLLISION_CHECK_THRESHOLD = 20; // don't check unless within 6m
 
 FrenetPath::FrenetPath(FrenetHyperparameters *fot_hp_) {
     fot_hp = fot_hp_;
@@ -61,23 +62,24 @@ bool FrenetPath::to_global_path(CubicSpline2D* csp) {
 
 // Validate the calculated frenet paths against threshold speed, acceleration,
 // curvature and collision checks
-bool FrenetPath::is_valid_path(const vector<Obstacle *> obstacles) {
-    if (any_of(s_d.begin(), s_d.end(),
-            [this](int i){return abs(i) > fot_hp->max_speed;})) {
-        return false;
-    }
-    // max accel check
-    else if (any_of(s_dd.begin(), s_dd.end(),
-            [this](int i){return abs(i) > fot_hp->max_accel;})) {
-        return false;
-    }
-    // max curvature check
-    else if (any_of(c.begin(), c.end(),
-            [this](int i){return abs(i) > fot_hp->max_curvature;})) {
-        return false;
-    }
-    // collision check
-    else if (is_collision(obstacles)) {
+bool FrenetPath::is_valid_path(const vector<vector<Obstacle *> > obstacles) {
+    // if (any_of(s_d.begin(), s_d.end(),
+    //         [this](int i){return abs(i) > fot_hp->max_speed;})) {
+    //     return false;
+    // }
+    // // max accel check
+    // else if (any_of(s_dd.begin(), s_dd.end(),
+    //         [this](int i){return abs(i) > fot_hp->max_accel;})) {
+    //     return false;
+    // }
+    // // max curvature check
+    // else if (any_of(c.begin(), c.end(),
+    //         [this](int i){return abs(i) > fot_hp->max_curvature;})) {
+    //     return false;
+    // }
+    // // collision check
+    // else
+    if (is_collision(obstacles)) {
         return false;
     }
     else {
@@ -86,7 +88,7 @@ bool FrenetPath::is_valid_path(const vector<Obstacle *> obstacles) {
 }
 
 // check path for collision with obstacles
-bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
+bool FrenetPath::is_collision(const vector<vector<Obstacle *> > obstacles) {
     // no obstacles
     if (obstacles.empty()) {
         return false;
@@ -97,12 +99,14 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
     Vector2f p1, p2;
     vector<Point> car_outline;
     // iterate over all obstacles
-    for (auto obstacle : obstacles) {
-        double llx = obstacle->bbox.first.x();
-        double lly = obstacle->bbox.first.y();
-        double urx = obstacle->bbox.second.x();
-        double ury = obstacle->bbox.second.y();
-        for (size_t i = 0; i < x.size(); i++) {
+    // std::cout<<"x size"<<x.size()<<" "<<obstacles.size()<<" "<<obstacles[0].size()<<std::endl;
+    for (size_t i = 0; i < x.size(); i++) {
+        for (auto obstacle : obstacles[i]) {
+            double llx = obstacle->bbox.first.x();
+            double lly = obstacle->bbox.first.y();
+            double urx = obstacle->bbox.second.x();
+            double ury = obstacle->bbox.second.y();
+
             double d1 = norm(llx - x[i], lly - y[i]);
             double d2 = norm(llx - x[i], ury - y[i]);
             double d3 = norm(urx - x[i], ury - y[i]);
@@ -111,6 +115,9 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
             double closest = min({d1, d2, d3, d4});
             // only check for collision if one corner of bounding box is
             // within COLLISION_CHECK_THRESHOLD of waypoint
+                            if (i > 5 && (y[i] < -6 || y[i] > 8)) {
+                    return true;
+                }
             if (closest <= COLLISION_CHECK_THRESHOLD) {
                 double xp = x[i];
                 double yp = y[i];
@@ -124,6 +131,7 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
                     p2.x() = car_outline[(i+1) % car_outline.size()][0];
                     p2.y() = car_outline[(i+1) % car_outline.size()][1];
                     if (obstacle->isSegmentInObstacle(p1, p2)) {
+                        // std::cout<<p1.x()<<" "<<p1.y()<<" "<<p2.x()<<" "<<p2.y()<<" "<<llx<<" "<<lly<<" "<<urx<<" "<<ury<<std::endl;
                         return true;
                     }
                     // TODO (@fangedward): containment check is not implemented
@@ -142,16 +150,15 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
 // calculate the sum of 1 / distance_to_obstacle
 double
 FrenetPath::inverse_distance_to_obstacles(
-    const vector<Obstacle *> obstacles) {
+    const vector<vector<Obstacle *> > obstacles) {
     double total_inverse_distance = 0.0;
+    for (size_t i = 0; i < min(x.size(), obstacles.size()); i++) {
+        for (auto obstacle : obstacles[i]) {
+            double llx = obstacle->bbox.first.x();
+            double lly = obstacle->bbox.first.y();
+            double urx = obstacle->bbox.second.x();
+            double ury = obstacle->bbox.second.y();
 
-    for (auto obstacle : obstacles) {
-        double llx = obstacle->bbox.first.x();
-        double lly = obstacle->bbox.first.y();
-        double urx = obstacle->bbox.second.x();
-        double ury = obstacle->bbox.second.y();
-
-        for (size_t i = 0; i < x.size(); i++) {
             double d1 = norm(llx - x[i], lly - y[i]);
             double d2 = norm(llx - x[i], ury - y[i]);
             double d3 = norm(urx - x[i], ury - y[i]);

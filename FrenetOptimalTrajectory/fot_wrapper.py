@@ -12,7 +12,7 @@ except:
          FrenetReturnValues, MAX_PATH_LENGTH
 
 try:
-    cdll = CDLL("build/libFrenetOptimalTrajectory.so")
+    cdll = CDLL("/home/shivesh/RISS/frenet_optimal_trajectory_planner/build/libFrenetOptimalTrajectory.so")
 except:
     cdll = CDLL("{}/dependencies/frenet_optimal_trajectory_planner/"
                 "build/libFrenetOptimalTrajectory.so".format(

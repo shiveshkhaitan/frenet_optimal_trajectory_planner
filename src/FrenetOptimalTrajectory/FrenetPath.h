@@ -2,9 +2,9 @@
 #define FRENET_OPTIMAL_TRAJECTORY_FRENETPATH_H
 
 #include "py_cpp_struct.h"
-#include "CubicSpline2D.h"
-#include "Obstacle.h"
-#include "Car.h"
+#include <../CubicSpline/CubicSpline2D.h>
+#include <../Obstacle/Obstacle.h>
+#include <../Car/Car.h>
 
 #include <eigen3/Eigen/Dense>
 #include <vector>
@@ -61,10 +61,10 @@ public:
 
     FrenetPath(FrenetHyperparameters *fot_hp_);
     bool to_global_path(CubicSpline2D* csp);
-    bool is_valid_path(const vector<Obstacle *> obstacles);
-    bool is_collision(const vector<Obstacle *> obstacles);
+    bool is_valid_path(const vector<vector<Obstacle *> > obstacles);
+    bool is_collision(const vector<vector<Obstacle *> > obstacles);
     double inverse_distance_to_obstacles(
-        const vector<Obstacle *> obstacles);
+        const vector<vector<Obstacle *> > obstacles);
 
 private:
     // Hyperparameters

@@ -14,10 +14,10 @@
 #ifndef FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H
 #define FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H
 
-#include "FrenetPath.h"
+#include "./FrenetPath.h"
 #include "py_cpp_struct.h"
-#include "CubicSpline2D.h"
-#include "Obstacle.h"
+#include <../CubicSpline/CubicSpline2D.h>
+#include <../Obstacle/Obstacle.h>
 
 #include <vector>
 #include <cmath>
@@ -36,12 +36,13 @@ public:
     FrenetPath* getBestPath();
     void setObstacles();
     void addObstacle(Vector2f first_point, Vector2f second_point);
+    vector<FrenetPath> fp_list;
 private:
     FrenetInitialConditions *fot_ic;
     FrenetHyperparameters *fot_hp;
     FrenetPath *best_frenet_path;
     CubicSpline2D *csp;
-    vector<Obstacle *> obstacles;
+    vector<vector<Obstacle *> > obstacles;
     vector<double> x, y;
     vector<FrenetPath *> frenet_paths;
     void calc_frenet_paths();

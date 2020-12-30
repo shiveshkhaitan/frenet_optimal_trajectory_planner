@@ -1,7 +1,7 @@
 #ifndef FRENET_OPTIMAL_TRAJECTORY_CUBICSPLINE1D_H
 #define FRENET_OPTIMAL_TRAJECTORY_CUBICSPLINE1D_H
 
-#include <Eigen/LU>
+#include <eigen3/Eigen/LU>
 #include <vector>
 
 // 1-dimensional cubic spline class.

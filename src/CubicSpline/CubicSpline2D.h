@@ -1,7 +1,7 @@
 #ifndef FRENET_OPTIMAL_TRAJECTORY_CUBICSPLINE2D_H
 #define FRENET_OPTIMAL_TRAJECTORY_CUBICSPLINE2D_H
 
-#include "CubicSpline1D.h"
+#include <../CubicSpline/CubicSpline1D.h>
 
 #include <vector>
 

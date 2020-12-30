@@ -9,11 +9,11 @@ def main():
     conds = {
         's0': 0,
         'target_speed': 20,
-        'wp': [[0, 0], [50, 0], [150, 0]],
-        'obs': [[48, -2, 52, 2],
-                [98, -4, 102, 2],
-                [98, 6, 102, 10],
-                [128, 2, 132, 6]],
+        'wp': [[0, 0], [-50, 0], [-150, 0]],
+        'obs': [[-48, -2, -52, 2],
+                [-98, -4, -102, 2],
+                [-98, 6, -102, 10],
+                [-128, 2, -132, 6]],
         'pos': [0, 0],
         'vel': [0, 0],
     } # paste output from debug log
@@ -111,7 +111,7 @@ def main():
                       np.linalg.norm(initial_conditions['vel']))[0:4]
             )
             plt.grid(True)
-            plt.savefig("{}.jpg".format(i))
+            # plt.savefig("{}.jpg".format(i))
             plt.pause(0.1)
 
     print("Finish")

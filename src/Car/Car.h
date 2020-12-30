@@ -1,7 +1,7 @@
 #ifndef FRENETOPTIMALTRAJECTORY_CAR_H
 #define FRENETOPTIMALTRAJECTORY_CAR_H
 
-#include "utils.h"
+#include <../utils.h>
 
 #include <vector>
 #include <tuple>
@@ -9,8 +9,8 @@
 using namespace std;
 
 // Lincoln MKZ configuration
-const double VEHICLE_LENGTH = 4.93;
-const double VEHICLE_WIDTH = 1.86;
+const double VEHICLE_LENGTH = 4.7;
+const double VEHICLE_WIDTH = 2.3;
 
 class Car {
 public:
