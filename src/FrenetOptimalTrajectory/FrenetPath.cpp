@@ -68,17 +68,18 @@ bool FrenetPath::is_valid_path(const vector<vector<Obstacle *> > obstacles) {
     //     return false;
     // }
     // // max accel check
-    // else if (any_of(s_dd.begin(), s_dd.end(),
-    //         [this](int i){return abs(i) > fot_hp->max_accel;})) {
-    //     return false;
-    // }
+    // else
+    if (any_of(s_dd.begin(), s_dd.end(),
+            [this](int i){return abs(i) > fot_hp->max_accel;})) {
+        return false;
+    }
     // // max curvature check
     // else if (any_of(c.begin(), c.end(),
     //         [this](int i){return abs(i) > fot_hp->max_curvature;})) {
     //     return false;
     // }
     // // collision check
-    // else
+    else
     if (is_collision(obstacles)) {
         return false;
     }
@@ -115,7 +116,7 @@ bool FrenetPath::is_collision(const vector<vector<Obstacle *> > obstacles) {
             double closest = min({d1, d2, d3, d4});
             // only check for collision if one corner of bounding box is
             // within COLLISION_CHECK_THRESHOLD of waypoint
-                            if (i > 5 && (y[i] < -6 || y[i] > 8)) {
+                            if (i > 5 && (y[i] < 2.0 || y[i] > 7)) {
                     return true;
                 }
             if (closest <= COLLISION_CHECK_THRESHOLD) {
